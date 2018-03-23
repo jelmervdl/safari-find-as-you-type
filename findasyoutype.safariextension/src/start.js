@@ -27,7 +27,8 @@ const FindAsYouTypeStart = (function() {
     indicator: null,
     indicatorInner: null,
 
-    indicatorTimeout: null,
+    indicatorOpacityTimeout: null,
+    indicatorDisplayTimeout: null,
     indicatorFlashTimeout: null,
 
     settings: {
@@ -87,18 +88,21 @@ const FindAsYouTypeStart = (function() {
     },
 
     hide() {
-      clearTimeout(this.indicatorTimeout)
+      clearTimeout(this.indicatorOpacityTimeout)
+      clearTimeout(this.indicatorDisplayTimeout)
 
       this.searchString = ''
       this.nextSearchString = ''
       this.displaySearchString = ''
 
-      FindAsYouTypeStart.indicator.style.opacity = 0.0
+      this.indicatorOpacityTimeout = setTimeout(() => {
+        FindAsYouTypeStart.indicator.style.opacity = 0.0
 
-      this.indicatorTimeout = setTimeout(() => {
-        this.indicator.style.display = 'none'
-        this.indicatorInner.removeAttribute('color')
-      }, 500)
+        this.indicatorDisplayTimeout = setTimeout(() => {
+          this.indicator.style.display = 'none'
+          this.indicatorInner.removeAttribute('color')
+        }, 500)
+      }, 50)
     },
 
     flash() {
