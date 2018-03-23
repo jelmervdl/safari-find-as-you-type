@@ -227,22 +227,6 @@ const FindAsYouTypeStart = (function() {
           this.displayInIndicator(this.nextSearchString, ' (⌘G)', color)
           event.preventDefault()
           event.stopPropagation()
-        } else if (
-          e.character == 'I' &&
-          e.cmdKey &&
-          !e.ctrlKey &&
-          !e.shiftKey
-        ) {
-          const href = this.mungeHref(
-            document.activeElement.getAttribute('href')
-          ).join('')
-
-          if (href) {
-            safari.self.tab.dispatchMessage('sendToInstapaper', {href: href})
-          }
-
-          event.preventDefault()
-          event.stopPropagation()
         }
       }
     },
@@ -361,29 +345,6 @@ const FindAsYouTypeStart = (function() {
           validResult = false
         }
       }
-    },
-
-    mungeHref(href) {
-      // Figure out what to do.
-      if (href.match(/^([a-zA-Z]+:)/)) {
-        let prefix = ''
-      } else if (href.match(/^\//)) {
-        let prefix = location.protocol + '//' + location.host
-      } else if (href.match(/^#/)) {
-        let prefix = location.href
-      } else {
-        let prefix = location.href.replace(/\/[^\/]*(\?.*)?$/, '/')
-      }
-
-      // Deal with ../ in <a href>.
-      let this_href = href
-
-      while (this_href.match(/\.\.\//)) {
-        this_href = this_href.replace(/\.\.\//, '')
-        prefix = prefix.replace(/[^\/]*\/$/, '')
-      }
-
-      return [prefix, this_href]
     },
 
     init() {
