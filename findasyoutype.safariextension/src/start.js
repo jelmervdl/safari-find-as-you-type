@@ -15,6 +15,10 @@ const AUTO_HIDE_DELAY = 1500
 
 const FindAsYouTypeStart = (function() {
   return {
+    // -------------------------------------------------------------
+    // Members.
+    // -------------------------------------------------------------
+
     searchString: '',
     nextSearchString: '',
     displaySearchString: '',
@@ -35,78 +39,26 @@ const FindAsYouTypeStart = (function() {
 
     setupAlready: false,
 
-    trim(str) {
-      return String(str).match(/^\s*(.*?)\s*$/)[1]
+    // -------------------------------------------------------------
+    // Methods.
+    // -------------------------------------------------------------
+
+    init() {
+      // Only apply to top page.
+      if (window !== window.top) return
+
+      // Bind message listener.
+      safari.self.addEventListener(
+        'message',
+        msg => FindAsYouTypeStart[msg.name](msg.message),
+        false
+      )
+
+      // Fetch settings (inc. blacklist).
+      safari.self.tab.dispatchMessage('getSettings')
     },
 
-    fireEvent(el, eventName) {
-      const evt = document.createEvent('HTMLEvents')
-      evt.initEvent(eventName, true, true)
-      el.dispatchEvent(evt)
-    },
-
-    focusedElement() {
-      const el = document.activeElement
-      const computedStyle = window.getComputedStyle(el)
-
-      return (el.tagName.match(/input|textarea|select|button/i) &&
-        (el.getAttribute('type') || '').match(/^|text|search|password$/)) ||
-        el.getAttribute('contenteditable') == 'true' ||
-        computedStyle['-webkit-user-modify'] != 'read-only'
-        ? el
-        : false
-    },
-
-    mouseoutListener() {
-      FindAsYouTypeStart.fireEvent(this, 'mouseout')
-
-      // Make sure we remove ourselves.
-      this.removeEventListener('focusout', FindAsYouTypeStart.mouseoutListener)
-    },
-
-    focusSelectedLink(str) {
-      const selection = window.getSelection()
-      let color = ''
-      let el = selection.anchorNode || false
-
-      while (el && el.tagName != 'A') el = el.parentNode
-
-      if (el && el.tagName == 'A') {
-        color = 'green'
-        el.focus()
-        // Send mouseover event to new element.
-        FindAsYouTypeStart.fireEvent(el, 'mouseover')
-        // Send mouseout event when it loses focus.
-        el.addEventListener('focusout', FindAsYouTypeStart.mouseoutListener)
-      } else if (selection.rangeCount) {
-        // Get selection.
-        const range = document.createRange()
-        range.setStart(selection.anchorNode, selection.anchorOffset)
-        range.setEnd(selection.extentNode, selection.extentOffset)
-        // Defocus (side-effect: deselects).
-        document.activeElement.blur()
-        // Reselect selection.
-        selection.addRange(range)
-      } else {
-        document.activeElement.blur()
-      }
-
-      return color
-    },
-
-    createHiddenElementWithTagNameAndContents(tagName, contents) {
-      const hiddenEl = document.createElement(tagName)
-      hiddenEl.style.position = 'absolute'
-      hiddenEl.style.top = '-1000px'
-
-      if (contents) hiddenEl.innerHTML = contents
-
-      document.getElementsByTagName('body')[0].appendChild(hiddenEl)
-
-      return hiddenEl
-    },
-
-    createIndicator() {
+    create() {
       // Only create one indicator, outside.
       if (
         window !== window.top ||
@@ -149,7 +101,7 @@ const FindAsYouTypeStart = (function() {
       }, 500)
     },
 
-    flashIndicator() {
+    flash() {
       clearTimeout(this.indicatorFlashTimeout)
 
       if (this.indicator) {
@@ -157,49 +109,6 @@ const FindAsYouTypeStart = (function() {
         this.indicatorFlashTimeout = setTimeout(() => {
           FindAsYouTypeStart.indicatorInner.removeAttribute('color')
         }, 400)
-      }
-    },
-
-    selectedTextEqualsNextSearchString() {
-      const selection = window.getSelection()
-
-      return (
-        selection.rangeCount &&
-        this.trim(String(selection).toLowerCase()) ==
-          this.trim(this.nextSearchString.toLowerCase())
-      )
-    },
-
-    hijackCopyWith(textToCopy) {
-      // Get current selection.
-      const selection = window.getSelection()
-      const currentSelection = selection.getRangeAt(0)
-
-      // Create element.
-      const clipboardElement = this.createHiddenElementWithTagNameAndContents(
-        'fayt_clipboard',
-        textToCopy
-      )
-      console.log('Copied:', textToCopy)
-
-      // Select it.
-      selection.removeAllRanges()
-
-      const range = document.createRange()
-      range.selectNode(document.querySelectorAll('fayt_clipboard')[0])
-      selection.addRange(range)
-
-      // Do this stuff immediately after copy operation.
-      setTimeout(() => {
-        selection.removeAllRanges()
-        selection.addRange(currentSelection)
-        clipboardElement.parentNode.removeChild(clipboardElement)
-      }, 0)
-    },
-
-    blurFocusedElement() {
-      if (this.focusedElement() || this.selectedTextEqualsNextSearchString()) {
-        document.activeElement.blur()
       }
     },
 
@@ -245,17 +154,6 @@ const FindAsYouTypeStart = (function() {
       }
     },
 
-    handleCopy(e) {
-      if (
-        document.activeElement &&
-        document.activeElement.tagName == 'A' &&
-        this.selectedTextEqualsNextSearchString()
-      ) {
-        this.hijackCopyWith(e.srcElement.href)
-        this.show('URL copied', ' (⌘C)', 'blue')
-      }
-    },
-
     handleTypingKeys(e) {
       e.cmdKey = e.metaKey && !e.ctrlKey
       e.character = String.fromCharCode(e.keyCode)
@@ -263,7 +161,7 @@ const FindAsYouTypeStart = (function() {
       // If it was a typeable character, Cmd key wasn't down, and a field doesn't have focus.
       if (
         e.keyCode &&
-        !this.focusedElement() &&
+        !this.getFocusedElement() &&
         !e.cmdKey &&
         !e.metaKey &&
         !e.ctrlKey
@@ -297,7 +195,7 @@ const FindAsYouTypeStart = (function() {
             this.show(this.nextSearchString, '', color)
 
             // Check for nothing found.
-            if (!window.getSelection().rangeCount) this.flashIndicator()
+            if (!window.getSelection().rangeCount) this.flash()
 
             e.preventDefault()
             e.stopPropagation()
@@ -308,6 +206,24 @@ const FindAsYouTypeStart = (function() {
         clearTimeout(this.keyupTimeout)
         this.keyupTimeout = setTimeout(() => this.hide(), AUTO_HIDE_DELAY)
       }
+    },
+
+    handleCopy(e) {
+      if (
+        document.activeElement &&
+        document.activeElement.tagName == 'A' &&
+        this.selectedTextEqualsNextSearchString()
+      ) {
+        this.hijackCopyWith(e.srcElement.href)
+        this.show('URL copied', ' (⌘C)', 'blue')
+      }
+    },
+
+    handleMouseOut() {
+      FindAsYouTypeStart.fireEvent(this, 'mouseout')
+
+      // Make sure we remove ourselves.
+      this.removeEventListener('focusout', FindAsYouTypeStart.handleMouseOut)
     },
 
     find(searchString, backwards) {
@@ -352,21 +268,6 @@ const FindAsYouTypeStart = (function() {
       }
     },
 
-    init() {
-      // Only apply to top page.
-      if (window !== window.top) return
-
-      // Bind message listener.
-      safari.self.addEventListener(
-        'message',
-        msg => FindAsYouTypeStart[msg.name](msg.message),
-        false
-      )
-
-      // Fetch settings (inc. blacklist).
-      safari.self.tab.dispatchMessage('getSettings')
-    },
-
     getSettingsCallback(settings) {
       this.settings = settings
       this.blacklist = settings.blacklist.split(',')
@@ -402,7 +303,7 @@ const FindAsYouTypeStart = (function() {
 
     setUpEventsAndElements() {
       // Add indicator div to page.
-      this.createIndicator()
+      this.create()
 
       // Handle command-g & esc.
       window.addEventListener(
@@ -423,6 +324,120 @@ const FindAsYouTypeStart = (function() {
         e => FindAsYouTypeStart.handleCopy(e),
         true
       )
+    },
+
+    // -------------------------------------------------------------
+    // Helpers.
+    // -------------------------------------------------------------
+
+    selectedTextEqualsNextSearchString() {
+      const selection = window.getSelection()
+
+      return (
+        selection.rangeCount &&
+        this.trim(String(selection).toLowerCase()) ==
+          this.trim(this.nextSearchString.toLowerCase())
+      )
+    },
+
+    hijackCopyWith(textToCopy) {
+      // Get current selection.
+      const selection = window.getSelection()
+      const currentSelection = selection.getRangeAt(0)
+
+      // Create element.
+      const clipboardElement = this.createHiddenElementWithTagNameAndContents(
+        'fayt_clipboard',
+        textToCopy
+      )
+      console.log('Copied:', textToCopy)
+
+      // Select it.
+      selection.removeAllRanges()
+
+      const range = document.createRange()
+      range.selectNode(document.querySelectorAll('fayt_clipboard')[0])
+      selection.addRange(range)
+
+      // Do this stuff immediately after copy operation.
+      setTimeout(() => {
+        selection.removeAllRanges()
+        selection.addRange(currentSelection)
+        clipboardElement.parentNode.removeChild(clipboardElement)
+      }, 0)
+    },
+
+    trim(str) {
+      return String(str).match(/^\s*(.*?)\s*$/)[1]
+    },
+
+    fireEvent(el, eventName) {
+      const evt = document.createEvent('HTMLEvents')
+      evt.initEvent(eventName, true, true)
+      el.dispatchEvent(evt)
+    },
+
+    getFocusedElement() {
+      const el = document.activeElement
+      const computedStyle = window.getComputedStyle(el)
+
+      return (el.tagName.match(/input|textarea|select|button/i) &&
+        (el.getAttribute('type') || '').match(/^|text|search|password$/)) ||
+        el.getAttribute('contenteditable') == 'true' ||
+        computedStyle['-webkit-user-modify'] != 'read-only'
+        ? el
+        : false
+    },
+
+    blurFocusedElement() {
+      if (
+        this.getFocusedElement() ||
+        this.selectedTextEqualsNextSearchString()
+      ) {
+        document.activeElement.blur()
+      }
+    },
+
+    focusSelectedLink(str) {
+      const selection = window.getSelection()
+      let color = ''
+      let el = selection.anchorNode || false
+
+      while (el && el.tagName != 'A') el = el.parentNode
+
+      if (el && el.tagName == 'A') {
+        color = 'green'
+        el.focus()
+        // Send mouseover event to new element.
+        FindAsYouTypeStart.fireEvent(el, 'mouseover')
+        // Send mouseout event when it loses focus.
+        el.addEventListener('focusout', FindAsYouTypeStart.handleMouseOut)
+      } else if (selection.rangeCount) {
+        // Get selection.
+        const range = document.createRange()
+        range.setStart(selection.anchorNode, selection.anchorOffset)
+        range.setEnd(selection.extentNode, selection.extentOffset)
+        // Defocus (side-effect: deselects).
+        document.activeElement.blur()
+        // Reselect selection.
+        selection.addRange(range)
+      } else {
+        document.activeElement.blur()
+      }
+
+      return color
+    },
+
+    createHiddenElementWithTagNameAndContents(tagName, contents) {
+      const hiddenEl = document.createElement(tagName)
+      hiddenEl.style.position = 'absolute'
+      hiddenEl.style.top = '-1000px'
+
+      if (contents) hiddenEl.innerHTML = contents
+
+      document.getElementsByTagName('body')[0].appendChild(hiddenEl)
+
+      return hiddenEl
     }
   }
 })()
