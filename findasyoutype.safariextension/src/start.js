@@ -175,17 +175,8 @@ const FindAsYouTypeStart = (function() {
           this.nextSearchString = this.searchString
           this.displaySearchString = this.searchString.replace(/ /g, '␣')
 
-          // Let the first letter fall through, for j/k-style navigation
-          // also let it fall through if it's only j's and k's
-          // (or possibly other known nav keys unlikely to be words),
-          // or a string of identical chars.
-          if (
-            this.searchString.length > 1 &&
-            !this.searchString.match(/^[jk]*$/) &&
-            !this.searchString.match(
-              new RegExp('^[' + this.searchString[0] + ']+$')
-            )
-          ) {
+          // Let the first letter fall through.
+          if (this.searchString.length > 1) {
             // Clear selection and find again.
             window.getSelection().removeAllRanges()
             this.find(this.searchString, false)
