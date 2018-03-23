@@ -106,10 +106,10 @@ var TTNInjection = (function() {
         return
 
       // create indicator
-      this.indicator = document.createElement('ttn')
-      this.indicator.innerHTML = '<ttn_inner></ttn_inner>'
+      this.indicator = document.createElement('fayt_wrapper')
+      this.indicator.innerHTML = '<fayt_content></fayt_content>'
       document.getElementsByTagName('body')[0].appendChild(this.indicator)
-      this.indicatorInner = document.getElementsByTagName('ttn_inner')[0]
+      this.indicatorInner = document.getElementsByTagName('fayt_content')[0]
     },
 
     displayInIndicator: function(str, append, color) {

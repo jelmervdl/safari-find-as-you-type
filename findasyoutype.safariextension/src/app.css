@@ -1,39 +1,50 @@
-ttn {
+fayt_wrapper {
+  display: none;
+
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 10%;
-  text-align: center;
-  opacity: 0;
-  font: 18px helvetica;
-  -webkit-transition: opacity 0.25s linear;
+  bottom: 0;
   z-index: 9999999;
-  display: none;
+
+  opacity: 0;
+
+  text-align: right;
+  font-family: -apple-system;
+  font-size: 12px;
+
+  transition: opacity 0.25s linear;
 }
 
-ttn_inner {
-  background: rgba(0, 0, 0, 0.75);
-  -webkit-border-radius: 8px;
-  border: 2px solid rgba(255, 255, 255, 0.75);
-  -webkit-box-shadow: 0 3px 25px rgba(0, 0, 0, 0.75);
-  margin: 0 auto;
+fayt_content {
   display: inline-block;
-  padding: 8px !important;
-  color: white;
+
+  margin: 3px;
+  margin-left: auto;
+
+  padding: 3px 7px 2px;
+
+  background: rgba(239, 239, 239, 0.75);
+
+  border-radius: 5px;
+
+  transition: all 0.2s ease-in;
 }
 
-ttn_inner[color='red'] {
+fayt_content[color='red'] {
+  color: white;
   background: rgba(255, 0, 0, 0.75);
 }
 
-ttn_inner[color='green'] {
+fayt_content[color='green'] {
+  color: white;
   background: rgba(0, 191, 0, 0.75);
 }
 
-ttn_inner[color='blue'] {
+fayt_content[color='blue'] {
   background: rgba(0, 0, 191, 0.75);
 }
 
-ttn_inner[color='gray'] {
+fayt_content[color='gray'] {
   background: rgba(147, 147, 147, 0.75);
 }
