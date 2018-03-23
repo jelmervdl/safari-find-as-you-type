@@ -36,7 +36,7 @@
 		</array>
 	</dict>
 	<key>Description</key>
-	<string>Add "Find As You Type" functionality, similar to Firefox. Use ⌘G or ⇧⌘G to search for the next or previous occurrence.</string>
+	<string>Add "Find As You Type" functionality (use ⌘G/⇧⌘G for next/previous occurrence).</string>
 	<key>DeveloperIdentifier</key>
 	<string>0000000000</string>
 	<key>ExtensionInfoDictionaryVersion</key>
