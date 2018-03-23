@@ -5,7 +5,7 @@
 	<key>Author</key>
 	<string>Daniel Bergey</string>
 	<key>Builder Version</key>
-	<string>7534.53.10</string>
+	<string>13604.5.6</string>
 	<key>CFBundleDisplayName</key>
 	<string>Type-To-Navigate</string>
 	<key>CFBundleIdentifier</key>
@@ -37,6 +37,8 @@
 	</dict>
 	<key>Description</key>
 	<string>Type to select text in a link, hit return to follow it. ⌘G: Find Next, ⌘C: Copy URL, ⌘I: Send URL to Instapaper.</string>
+	<key>DeveloperIdentifier</key>
+	<string>0000000000</string>
 	<key>ExtensionInfoDictionaryVersion</key>
 	<string>1.0</string>
 	<key>Permissions</key>
