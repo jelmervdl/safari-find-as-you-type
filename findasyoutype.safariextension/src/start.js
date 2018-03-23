@@ -125,7 +125,7 @@ const FindAsYouTypeStart = (function() {
       this.indicatorInner = inner
     },
 
-    displayInIndicator(str, append, color) {
+    show(str, append, color) {
       if (this.indicator) {
         this.indicatorInner.setAttribute('color', color || '')
         this.indicatorInner.innerHTML = str + (append || '')
@@ -134,7 +134,7 @@ const FindAsYouTypeStart = (function() {
       }
     },
 
-    hideIndicator() {
+    hide() {
       clearTimeout(this.indicatorTimeout)
 
       this.searchString = ''
@@ -210,13 +210,13 @@ const FindAsYouTypeStart = (function() {
       // Escape? Blur and stop search.
       if (e.keyCode == ESCAPE_KEY_CODE) {
         this.blurFocusedElement()
-        this.hideIndicator()
+        this.hide()
         return
       }
 
       // Enter? Stop search.
       if (e.keyCode == ENTER_KEY_CODE) {
-        this.hideIndicator()
+        this.hide()
         return
       }
 
@@ -238,7 +238,7 @@ const FindAsYouTypeStart = (function() {
           }
 
           const color = this.focusSelectedLink(this.nextSearchString)
-          this.displayInIndicator(this.nextSearchString, ' (⌘G)', color)
+          this.show(this.nextSearchString, ' (⌘G)', color)
           event.preventDefault()
           event.stopPropagation()
         }
@@ -252,7 +252,7 @@ const FindAsYouTypeStart = (function() {
         this.selectedTextEqualsNextSearchString()
       ) {
         this.hijackCopyWith(e.srcElement.href)
-        this.displayInIndicator('URL copied', ' (⌘C)', 'blue')
+        this.show('URL copied', ' (⌘C)', 'blue')
       }
     },
 
@@ -294,7 +294,7 @@ const FindAsYouTypeStart = (function() {
 
             // Focus the link so return key follows.
             const color = this.focusSelectedLink(this.nextSearchString)
-            this.displayInIndicator(this.nextSearchString, '', color)
+            this.show(this.nextSearchString, '', color)
 
             // Check for nothing found.
             if (!window.getSelection().rangeCount) this.flashIndicator()
@@ -306,10 +306,7 @@ const FindAsYouTypeStart = (function() {
 
         // Auto-clear after a certain delay.
         clearTimeout(this.keyupTimeout)
-        this.keyupTimeout = setTimeout(
-          () => this.hideIndicator(),
-          AUTO_HIDE_DELAY
-        )
+        this.keyupTimeout = setTimeout(() => this.hide(), AUTO_HIDE_DELAY)
       }
     },
 
