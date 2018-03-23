@@ -184,7 +184,7 @@ const FindAsYouTypeStart = (function() {
       }, 0)
     },
 
-    handleNonAlphaKeys(e) {
+    handleActionKeys(e) {
       e.cmdKey = e.metaKey
       e.character = String.fromCharCode(e.keyCode)
 
@@ -242,7 +242,7 @@ const FindAsYouTypeStart = (function() {
       }
     },
 
-    handleAlphaKeys(e) {
+    handleTypingKeys(e) {
       e.cmdKey = e.metaKey && !e.ctrlKey
       e.character = String.fromCharCode(e.keyCode)
 
@@ -402,14 +402,14 @@ const FindAsYouTypeStart = (function() {
       // Handle command-g & esc.
       window.addEventListener(
         'keydown',
-        e => FindAsYouTypeStart.handleNonAlphaKeys(e),
+        e => FindAsYouTypeStart.handleActionKeys(e),
         true
       )
 
       // Handle typeable keypresses.
       window.addEventListener(
         'keypress',
-        e => FindAsYouTypeStart.handleAlphaKeys(e),
+        e => FindAsYouTypeStart.handleTypingKeys(e),
         true
       )
 
