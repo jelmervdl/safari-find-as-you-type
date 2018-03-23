@@ -163,8 +163,8 @@ const FindAsYouTypeStart = (function() {
       const currentSelection = selection.getRangeAt(0)
 
       // Create element.
-      const ttn_clipboard = this.createHiddenElementWithTagNameAndContents(
-        'ttn_clipboard',
+      const clipboardElement = this.createHiddenElementWithTagNameAndContents(
+        'fayt_clipboard',
         textToCopy
       )
       console.log('Copied:', textToCopy)
@@ -173,14 +173,14 @@ const FindAsYouTypeStart = (function() {
       selection.removeAllRanges()
 
       const range = document.createRange()
-      range.selectNode(document.querySelectorAll('ttn_clipboard')[0])
+      range.selectNode(document.querySelectorAll('fayt_clipboard')[0])
       selection.addRange(range)
 
       // Do this stuff immediately after copy operation.
       setTimeout(() => {
         selection.removeAllRanges()
         selection.addRange(currentSelection)
-        ttn_clipboard.parentNode.removeChild(ttn_clipboard)
+        clipboardElement.parentNode.removeChild(clipboardElement)
       }, 0)
     },
 
@@ -263,7 +263,7 @@ const FindAsYouTypeStart = (function() {
             // Do nothing, we allow the space bar and delete to fall through to scroll
             // the page if we have no searchstring.
           } else {
-            // append char
+            // Append char.
             this.searchString += e.character
             this.nextSearchString = this.searchString
             this.displaySearchString = this.searchString.replace(/ /g, '␣')
