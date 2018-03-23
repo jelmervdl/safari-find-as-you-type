@@ -42,7 +42,8 @@ fayt_content[color='green'] {
 }
 
 fayt_content[color='blue'] {
-  background: rgba(0, 0, 191, 0.75);
+  color: white;
+  background: rgba(10, 145, 255, 0.75);
 }
 
 fayt_content[color='gray'] {
