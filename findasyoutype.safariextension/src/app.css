@@ -9,6 +9,8 @@ fayt_wrapper {
 
   opacity: 0;
 
+  outline: none;
+
   text-align: right;
   font-family: -apple-system;
   font-size: 12px;
@@ -27,6 +29,8 @@ fayt_content {
   background: rgba(239, 239, 239, 0.75);
 
   border-radius: 5px;
+
+  outline: none;
 
   transition: all 0.2s ease-in;
 }
