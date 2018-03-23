@@ -6,6 +6,8 @@
 
 const ESCAPE_KEY_CODE = 27
 const ENTER_KEY_CODE = 13
+const SPACE_KEY_CODE = 32
+const DELETE_KEY_CODE = 8
 
 const AUTO_HIDE_DELAY = 1500
 
@@ -171,12 +173,24 @@ const FindAsYouTypeStart = (function() {
         !e.metaKey &&
         !e.ctrlKey
       ) {
-        if (this.searchString == '' && (e.keyCode == 32 || e.keyCode == 8)) {
+        if (this.searchString == '' && e.keyCode === SPACE_KEY_CODE) {
           // Do nothing, we allow the space bar and delete to fall through to scroll
           // the page if we have no searchstring.
         } else {
-          // Append char.
-          this.searchString += e.character
+          if (e.keyCode === DELETE_KEY_CODE) {
+            // Remove last.
+            this.blurFocusedElement()
+            this.searchString = this.searchString.slice(0, -1)
+
+            if (this.searchString.length === 0) {
+              this.hide()
+              return
+            }
+          } else {
+            // Append char.
+            this.searchString += e.character
+          }
+
           this.nextSearchString = this.searchString
           this.displaySearchString = this.searchString.replace(/ /g, '␣')
 
