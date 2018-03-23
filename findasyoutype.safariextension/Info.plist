@@ -3,23 +3,23 @@
 <plist version="1.0">
 <dict>
 	<key>Author</key>
-	<string>Daniel Bergey</string>
+	<string>Matthieu Oger</string>
 	<key>Builder Version</key>
 	<string>13604.5.6</string>
 	<key>CFBundleDisplayName</key>
-	<string>Type-To-Navigate</string>
+	<string>Find As You Type</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.danielbergey.safari.typetonavigate</string>
+	<string>net.solarsailer.safari.findasyoutype</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.7</string>
+	<string>1.0.0</string>
 	<key>CFBundleVersion</key>
-	<string>46</string>
+	<string>1</string>
 	<key>Chrome</key>
 	<dict>
 		<key>Global Page</key>
-		<string>global.html</string>
+		<string>app.html</string>
 	</dict>
 	<key>Content</key>
 	<dict>
@@ -27,16 +27,16 @@
 		<dict>
 			<key>Start</key>
 			<array>
-				<string>injection.js</string>
+				<string>src/start.js</string>
 			</array>
 		</dict>
 		<key>Stylesheets</key>
 		<array>
-			<string>typetonavigate.css</string>
+			<string>src/app.css</string>
 		</array>
 	</dict>
 	<key>Description</key>
-	<string>Type to select text in a link, hit return to follow it. ⌘G: Find Next, ⌘C: Copy URL, ⌘I: Send URL to Instapaper.</string>
+	<string>Add "Find As You Type" functionality, similar to Firefox. Use ⌘G or ⇧⌘G to search for the next or previous occurrence.</string>
 	<key>DeveloperIdentifier</key>
 	<string>0000000000</string>
 	<key>ExtensionInfoDictionaryVersion</key>
@@ -51,9 +51,7 @@
 			<string>All</string>
 		</dict>
 	</dict>
-	<key>Update Manifest URL</key>
-	<string>http://dbergey.github.com/Type-To-Navigate/updates_safari.plist</string>
 	<key>Website</key>
-	<string>http://danielbergey.com/software/typetonavigate/</string>
+	<string>http://solarsailer.net/</string>
 </dict>
 </plist>

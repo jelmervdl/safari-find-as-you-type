@@ -424,7 +424,9 @@ var TTNInjection = (function() {
             new RegExp('^' + this.blacklist[href].replace(/\*/g, '.*') + '$')
           )
         ) {
-          console.log('Type-To-Navigate: Not engaging due to blacklist.')
+          console.warn(
+            'find-as-you-type: not started because current website is blacklisted.'
+          )
           return
         }
       }
