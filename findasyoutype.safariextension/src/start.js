@@ -22,7 +22,6 @@ const FindAsYouTypeStart = (function() {
     searchString: '',
     nextSearchString: '',
     displaySearchString: '',
-    keyupTimeout: null,
 
     indicator: null,
     indicatorInner: null,
@@ -30,6 +29,8 @@ const FindAsYouTypeStart = (function() {
     indicatorOpacityTimeout: null,
     indicatorDisplayTimeout: null,
     indicatorFlashTimeout: null,
+
+    keyupTimeout: null,
 
     settings: {
       linksOnly: false,
