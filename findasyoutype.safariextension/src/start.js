@@ -1,17 +1,22 @@
 'use strict'
 
+const ESCAPE_KEY_CODE = 27
+const ENTER_KEY_CODE = 13
+
 const FindAsYouTypeStart = (function() {
   return {
     searchString: '',
     nextSearchString: '',
     displaySearchString: '',
-    keyupTimeout: null,
 
     indicator: null,
     indicatorInner: null,
+
     indicatorTimeout: null,
-    indicatorFadeTimeout: null,
     indicatorFlashTimeout: null,
+
+    copyHideTimeout: null,
+    copyRemoveTimeout: null,
 
     settings: {
       linksOnly: false,
@@ -105,35 +110,56 @@ const FindAsYouTypeStart = (function() {
       // Create actual indicator.
       this.indicator = document.createElement('fayt_wrapper')
       this.indicator.innerHTML = '<fayt_content></fayt_content>'
+
       document.getElementsByTagName('body')[0].appendChild(this.indicator)
       this.indicatorInner = document.getElementsByTagName('fayt_content')[0]
     },
 
-    displayInIndicator(str, append, color) {
-      clearTimeout(this.indicatorTimeout)
-      clearTimeout(this.indicatorFadeTimeout)
+    createCopyIndicator() {
+      const outer = document.createElement('fayt_wrapper')
+      outer.style.opacity = 1.0
+      outer.style.display = 'block'
 
+      const inner = document.createElement('fayt_content')
+      inner.innerHTML = 'URL copied (⌘C)'
+      inner.setAttribute('color', 'blue')
+
+      outer.appendChild(inner)
+      document.body.appendChild(outer)
+
+      clearTimeout(this.copyHideTimeout)
+      clearTimeout(this.copyRemoveTimeout)
+
+      this.copyHideTimeout = setTimeout(() => {
+        outer.style.opacity = 0
+        this.copyRemoveTimeout = setTimeout(
+          () => document.body.removeChild(outer),
+          500
+        )
+      }, 1000)
+    },
+
+    displayInIndicator(str, append, color) {
       if (this.indicator) {
         this.indicatorInner.setAttribute('color', color || '')
         this.indicatorInner.innerHTML = str + (append || '')
-        this.indicator.style['-webkit-transition'] = 'none'
         this.indicator.style.opacity = 1.0
         this.indicator.style.display = 'block'
-        this.indicatorTimeout = setTimeout(() => {
-          FindAsYouTypeStart.indicator.style['-webkit-transition'] = null
-          FindAsYouTypeStart.indicator.style.opacity = 0.0
-          FindAsYouTypeStart.indicatorFadeTimeout = setTimeout(() => {
-            FindAsYouTypeStart.indicator.style.display = null
-          }, 500)
-        }, 1000)
       }
     },
 
     hideIndicator() {
+      clearTimeout(this.indicatorTimeout)
+
       this.searchString = ''
       this.nextSearchString = ''
       this.displaySearchString = ''
-      this.indicator.style.display = 'none'
+
+      FindAsYouTypeStart.indicator.style.opacity = 0.0
+
+      this.indicatorTimeout = setTimeout(() => {
+        this.indicator.style.display = 'none'
+      }, 500)
     },
 
     flashIndicator() {
@@ -184,25 +210,26 @@ const FindAsYouTypeStart = (function() {
       }, 0)
     },
 
+    blurFocusedElement() {
+      if (this.focusedElement() || this.selectedTextEqualsNextSearchString()) {
+        document.activeElement.blur()
+      }
+    },
+
     handleActionKeys(e) {
       e.cmdKey = e.metaKey
       e.character = String.fromCharCode(e.keyCode)
 
-      // Handle esc in fields (blur).
-      if (e.keyCode == 27) {
-        this.displayInIndicator('␛')
-
-        if (
-          this.focusedElement() ||
-          this.selectedTextEqualsNextSearchString()
-        ) {
-          document.activeElement.blur()
-        } else {
-          this.flashIndicator()
-        }
-
+      // Escape? Blur and stop search.
+      if (e.keyCode == ESCAPE_KEY_CODE) {
+        this.blurFocusedElement()
         this.hideIndicator()
+        return
+      }
 
+      // Enter? Stop search.
+      if (e.keyCode == ENTER_KEY_CODE) {
+        this.hideIndicator()
         return
       }
 
@@ -238,7 +265,9 @@ const FindAsYouTypeStart = (function() {
         this.selectedTextEqualsNextSearchString()
       ) {
         this.hijackCopyWith(e.srcElement.href)
-        this.displayInIndicator('URL copied', ' (⌘C)', 'blue')
+        this.hideIndicator()
+        this.blurFocusedElement()
+        this.createCopyIndicator()
       }
     },
 
@@ -254,54 +283,41 @@ const FindAsYouTypeStart = (function() {
         !e.metaKey &&
         !e.ctrlKey
       ) {
-        if (e.keyCode == 13) {
-          // Return key but no link; flash.
-          this.displayInIndicator(this.nextSearchString, ' ⏎')
-          this.flashIndicator()
+        if (this.searchString == '' && (e.keyCode == 32 || e.keyCode == 8)) {
+          // Do nothing, we allow the space bar and delete to fall through to scroll
+          // the page if we have no searchstring.
         } else {
-          if (this.searchString == '' && (e.keyCode == 32 || e.keyCode == 8)) {
-            // Do nothing, we allow the space bar and delete to fall through to scroll
-            // the page if we have no searchstring.
-          } else {
-            // Append char.
-            this.searchString += e.character
-            this.nextSearchString = this.searchString
-            this.displaySearchString = this.searchString.replace(/ /g, '␣')
+          // Append char.
+          this.searchString += e.character
+          this.nextSearchString = this.searchString
+          this.displaySearchString = this.searchString.replace(/ /g, '␣')
 
-            // Let the first letter fall through, for j/k-style navigation
-            // also let it fall through if it's only j's and k's
-            // (or possibly other known nav keys unlikely to be words),
-            // or a string of idential chars.
-            // KeyThinkAI™, idea credit @andyfowler.
-            if (
-              this.searchString.length > 1 &&
-              !this.searchString.match(/^[jk]*$/) &&
-              !this.searchString.match(
-                new RegExp('^[' + this.searchString[0] + ']+$')
-              )
-            ) {
-              // Clear selection and find again.
-              window.getSelection().removeAllRanges()
-              this.find(this.searchString, false)
+          // Let the first letter fall through, for j/k-style navigation
+          // also let it fall through if it's only j's and k's
+          // (or possibly other known nav keys unlikely to be words),
+          // or a string of identical chars.
+          if (
+            this.searchString.length > 1 &&
+            !this.searchString.match(/^[jk]*$/) &&
+            !this.searchString.match(
+              new RegExp('^[' + this.searchString[0] + ']+$')
+            )
+          ) {
+            // Clear selection and find again.
+            window.getSelection().removeAllRanges()
+            this.find(this.searchString, false)
 
-              // Focus the link so return key follows.
-              const color = this.focusSelectedLink(this.nextSearchString)
-              this.displayInIndicator(this.nextSearchString, '', color)
+            // Focus the link so return key follows.
+            const color = this.focusSelectedLink(this.nextSearchString)
+            this.displayInIndicator(this.nextSearchString, '', color)
 
-              // Check for nothing found.
-              if (!window.getSelection().rangeCount) this.flashIndicator()
+            // Check for nothing found.
+            if (!window.getSelection().rangeCount) this.flashIndicator()
 
-              e.preventDefault()
-              e.stopPropagation()
-            }
+            e.preventDefault()
+            e.stopPropagation()
           }
         }
-
-        // Postpone clearing.
-        clearTimeout(this.keyupTimeout)
-        this.keyupTimeout = setTimeout(() => {
-          FindAsYouTypeStart.searchString = ''
-        }, 1000)
       }
     },
 
