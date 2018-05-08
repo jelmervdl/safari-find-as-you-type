@@ -272,7 +272,7 @@ const FindAsYouTypeStart = (function() {
         validResult = true
 
         // DENIED if we only want links and it's not one.
-        if (this.settings.linksOnly && el && el.tagName != 'A') {
+        if (this.settings.linksOnly && el && !el.matches('a, a *')) {
           validResult = false
         }
       }
