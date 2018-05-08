@@ -388,7 +388,10 @@ const FindAsYouTypeStart = (function() {
     },
 
     getFocusedElement() {
-      const el = document.activeElement
+      let el = document.activeElement
+
+      while (el && el.shadowRoot) el = el.shadowRoot.activeElement
+
       const computedStyle = window.getComputedStyle(el)
 
       return (el.tagName.match(/input|textarea|select|button/i) &&
